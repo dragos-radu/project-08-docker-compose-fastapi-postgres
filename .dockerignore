@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.git/
+.gitignore
+README.md
+setup.md
+tests/
+aws/
+.env
+.env.*
+.DS_Store
