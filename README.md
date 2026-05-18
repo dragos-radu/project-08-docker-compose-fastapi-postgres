@@ -86,4 +86,14 @@ The initial Docker Compose foundation was added with two services:
 
 The setup also introduced a persistent Docker volume for database data, an internal Docker network for service communication, and environment variable support using a local `.env` file.
 
-Sensitive values are not stored directly in `docker-compose.yml`. A safe `.env.example` file is committed as a template, while the real `.env` file is ignored by Git.
+Sensitive values are not stored directly in `docker-compose.yml`. Instead, they are defined in the `.env` file, which is included in `.gitignore` to prevent accidental commits of sensitive information.
+
+### Add PostgreSQL Service with Docker Compose
+
+A PostgreSQL database service was added as a separate Docker Compose service.
+
+The database runs in its own container, uses environment variables from the local `.env` file, and stores data in a persistent Docker volume.
+
+A healthcheck was configured using `pg_isready` so Docker Compose can detect when the database is ready to accept connections.
+
+The service is connected to the internal Docker network, allowing the API service to communicate with it using the service name `db`.
