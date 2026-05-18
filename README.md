@@ -105,3 +105,11 @@ The previous in-memory dictionary from `store.py` was replaced with PostgreSQL-b
 A SQLAlchemy database connection was added, together with a dedicated database model for portfolio projects. The existing FastAPI endpoints and Pydantic models were kept, while the storage layer now reads and writes project data from the PostgreSQL container.
 
 The API automatically creates the required database table when the application starts.
+
+### Connect FastAPI Service to PostgreSQL Container
+
+The FastAPI service was connected to the PostgreSQL service through the internal Docker Compose network.
+
+The API uses the database service name `db` as the database host, allowing container-to-container communication without exposing internal service addresses in the application code.
+
+Environment variables are loaded from the local `.env` file, while Docker Compose waits for the PostgreSQL healthcheck before starting the API service.
