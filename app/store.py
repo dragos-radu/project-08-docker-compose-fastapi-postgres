@@ -1,53 +1,73 @@
+from app.database import SessionLocal
+from app.db_models import ProjectDB
 from app.models import Project, ProjectCreate, ProjectUpdate
 
-projects_store: dict[int, Project] = {}
-next_project_id = 1
+
+def db_project_to_project(db_project: ProjectDB) -> Project:
+    return Project(
+        id=db_project.id,
+        name=db_project.name,
+        description=db_project.description,
+        status=db_project.status,
+    )
 
 
 def list_projects() -> list[Project]:
-    return list(projects_store.values())
+    with SessionLocal() as db:
+        projects = db.query(ProjectDB).order_by(ProjectDB.id).all()
+        return [db_project_to_project(project) for project in projects]
 
 
 def get_project(project_id: int) -> Project | None:
-    return projects_store.get(project_id)
+    with SessionLocal() as db:
+        project = db.query(ProjectDB).filter(ProjectDB.id == project_id).first()
+
+        if project is None:
+            return None
+
+        return db_project_to_project(project)
 
 
 def create_project(project_data: ProjectCreate) -> Project:
-    global next_project_id
+    with SessionLocal() as db:
+        project = ProjectDB(
+            name=project_data.name,
+            description=project_data.description,
+            status=project_data.status,
+        )
 
-    project = Project(
-        id=next_project_id,
-        name=project_data.name,
-        description=project_data.description,
-        status=project_data.status,
-    )
+        db.add(project)
+        db.commit()
+        db.refresh(project)
 
-    projects_store[next_project_id] = project
-    next_project_id += 1
-
-    return project
+        return db_project_to_project(project)
 
 
 def update_project(project_id: int, project_data: ProjectUpdate) -> Project | None:
-    if project_id not in projects_store:
-        return None
+    with SessionLocal() as db:
+        project = db.query(ProjectDB).filter(ProjectDB.id == project_id).first()
 
-    update_project = Project(
-        id=project_id,
-        name=project_data.name,
-        description=project_data.description,
-        status=project_data.status,
-    )
+        if project is None:
+            return None
 
-    projects_store[project_id] = update_project
+        project.name = project_data.name
+        project.description = project_data.description
+        project.status = project_data.status
 
-    return update_project
+        db.commit()
+        db.refresh(project)
+
+        return db_project_to_project(project)
 
 
 def delete_project(project_id: int) -> bool:
-    if project_id not in projects_store:
-        return False
+    with SessionLocal() as db:
+        project = db.query(ProjectDB).filter(ProjectDB.id == project_id).first()
 
-    del projects_store[project_id]
+        if project is None:
+            return False
 
-    return True
+        db.delete(project)
+        db.commit()
+
+        return True

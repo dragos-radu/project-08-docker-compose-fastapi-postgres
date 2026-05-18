@@ -1,5 +1,8 @@
 from fastapi import FastAPI, HTTPException, status
 
+from app.database import Base, engine
+from app import db_models
+
 from app.models import Project, ProjectCreate, ProjectUpdate
 from app.store import (
     create_project,
@@ -8,6 +11,8 @@ from app.store import (
     list_projects,
     update_project,
 )
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="DevOps Projects API",

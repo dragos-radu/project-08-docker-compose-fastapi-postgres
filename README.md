@@ -97,3 +97,11 @@ The database runs in its own container, uses environment variables from the loca
 A healthcheck was configured using `pg_isready` so Docker Compose can detect when the database is ready to accept connections.
 
 The service is connected to the internal Docker network, allowing the API service to communicate with it using the service name `db`.
+
+### Replace In-Memory Storage with PostgreSQL Persistence
+
+The previous in-memory dictionary from `store.py` was replaced with PostgreSQL-backed persistence.
+
+A SQLAlchemy database connection was added, together with a dedicated database model for portfolio projects. The existing FastAPI endpoints and Pydantic models were kept, while the storage layer now reads and writes project data from the PostgreSQL container.
+
+The API automatically creates the required database table when the application starts.
