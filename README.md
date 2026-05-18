@@ -123,3 +123,11 @@ The test suite was updated to validate the CRUD flow through the public FastAPI 
 The tests now create, read, update, delete, and list projects using HTTP requests through FastAPI's `TestClient`.
 
 Because the application now uses PostgreSQL, the database container must be running before executing the tests locally.
+
+### Validate Docker Compose Networking and Persistence
+
+The Docker Compose setup was validated by running both the FastAPI API service and PostgreSQL database service together.
+
+The API container connects to the database using the Docker Compose service name `db` on port `5432`, proving that communication happens through the internal Docker network instead of localhost.
+
+A project was created through the API and then verified directly inside PostgreSQL. After restarting the containers with `docker compose down` and `docker compose up -d`, the project data remained available, confirming that the PostgreSQL Docker volume provides persistent storage.
