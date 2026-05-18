@@ -113,3 +113,13 @@ The FastAPI service was connected to the PostgreSQL service through the internal
 The API uses the database service name `db` as the database host, allowing container-to-container communication without exposing internal service addresses in the application code.
 
 Environment variables are loaded from the local `.env` file, while Docker Compose waits for the PostgreSQL healthcheck before starting the API service.
+
+### Update Tests for Database-Backed API
+
+The previous tests were still coupled to the in-memory dictionary used in Project 06.
+
+The test suite was updated to validate the CRUD flow through the public FastAPI endpoints instead of importing internal storage objects.
+
+The tests now create, read, update, delete, and list projects using HTTP requests through FastAPI's `TestClient`.
+
+Because the application now uses PostgreSQL, the database container must be running before executing the tests locally.
