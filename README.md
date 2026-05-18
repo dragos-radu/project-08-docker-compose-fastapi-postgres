@@ -131,3 +131,11 @@ The Docker Compose setup was validated by running both the FastAPI API service a
 The API container connects to the database using the Docker Compose service name `db` on port `5432`, proving that communication happens through the internal Docker network instead of localhost.
 
 A project was created through the API and then verified directly inside PostgreSQL. After restarting the containers with `docker compose down` and `docker compose up -d`, the project data remained available, confirming that the PostgreSQL Docker volume provides persistent storage.
+
+### Prepare Structure for Monitoring and Future Deployment
+
+The project structure was extended with placeholder folders for future monitoring, CI/CD, Kubernetes, and additional documentation.
+
+No Prometheus, CI/CD, or Kubernetes implementation was added at this stage. The purpose of this task was only to prepare a clean repository layout for the next roadmap steps.
+
+This keeps the current project focused on the local Docker Compose setup while making the repository ready for future monitoring and deployment work.
