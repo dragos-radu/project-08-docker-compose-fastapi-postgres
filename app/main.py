@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException, status
 
 from app.database import Base, engine
-from app import db_models
 
 from app.models import Project, ProjectCreate, ProjectUpdate
 from app.store import (

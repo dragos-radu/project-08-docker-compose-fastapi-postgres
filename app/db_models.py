@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String
 
 from app.database import Base
 
+
 class ProjectDB(Base):
     __tablename__ = "projects"
 
