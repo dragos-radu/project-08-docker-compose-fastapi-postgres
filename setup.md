@@ -1,81 +1,255 @@
-# Setup – Project 06 FastAPI CRUD API
+# Setup – Project 08
 
-## 1. Create virtual environment
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-## 2. Install dependencies
+## 1. Start from the project folder
 
 ```bash
-pip install -r requirements-dev.txt
+cd ~/devops-roadmap-portfolio/project-08-docker-compose-fastapi-postgres
 ```
 
-## 3. Run the API locally
+## 2. Create the local environment file
 
 ```bash
-uvicorn app.main:app --reload
+cp .env.example .env
 ```
 
-API health check:
+Edit the values if needed:
 
 ```bash
-curl http://127.0.0.1:8000/health
+nano .env
 ```
 
-Swagger documentation:
+For Docker Compose, the API container must use the database service name:
 
-```text
-http://127.0.0.1:8000/docs
+```
+DATABASE_HOST=db
+DATABASE_PORT=5432
 ```
 
-OpenAPI schema:
-
-```text
-http://127.0.0.1:8000/openapi.json
-```
-
-## 4. Run tests
+## 3. Validate Docker Compose configuration
 
 ```bash
-pytest -v
+docker compose config
 ```
 
-## 5. Run pre-commit checks
+## 4. Build and start all services
 
 ```bash
-pre-commit install
+docker compose up --build
+```
+
+Detached mode:
+
+```bash
+docker compose up --build -d
+```
+
+## 5. Check running services
+
+```bash
+docker compose ps
+```
+
+Expected services:
+
+- `api`
+- `db`
+
+The database service should become healthy.
+
+## 6. View logs
+
+All services:
+
+```bash
+docker compose logs -f
+```
+
+API only:
+
+```bash
+docker compose logs -f api
+```
+
+Database only:
+
+```bash
+docker compose logs -f db
+```
+
+## 7. Test the API
+
+Health check:
+
+```bash
+curl http://localhost:8000/health
+```
+
+Create a project:
+
+```bash
+curl -X POST http://localhost:8000/projects \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Project 08","description":"Docker Compose FastAPI app with PostgreSQL persistence.","status":"in-progress"}'
+```
+
+List projects:
+
+```bash
+curl http://localhost:8000/projects
+```
+
+Swagger UI:
+
+```
+http://localhost:8000/docs
+```
+
+## 8. Access PostgreSQL
+
+```bash
+docker compose exec db psql -U appuser -d appdb
+```
+
+Useful PostgreSQL commands:
+
+```sql
+\dt
+SELECT * FROM projects;
+\q
+```
+
+## 9. Run tests locally
+
+The database container must be running first:
+
+```bash
+docker compose up -d db
+```
+
+Run tests:
+
+```bash
+docker compose exec api python -m pytest -v
+```
+
+## 10. Run pre-commit checks
+
+```bash
 pre-commit run --all-files
 ```
 
-## 6. Build Docker image
+If pytest is enabled in pre-commit, make sure the database container is running before executing the hook.
+
+## 11. Validate persistence
+
+Create data through the API, then restart the containers without deleting volumes:
 
 ```bash
-docker build -t project-06-fastapi-crud-api .
+docker compose down
+docker compose up -d
 ```
 
-## 7. Run Docker container
+Check the data again:
 
 ```bash
-docker run --rm -p 8000:8000 project-06-fastapi-crud-api
+curl http://localhost:8000/projects
 ```
 
-Test container:
+If the data is still available, the PostgreSQL Docker volume is working.
+
+## 12. Stop services
 
 ```bash
-curl http://127.0.0.1:8000/health
+docker compose down
 ```
 
-## 8. Test optional Lambda wrapper import
+## 13. Stop services and remove database data
 
 ```bash
-python -c "from aws.lambda_wrapper.handler import handler; print(handler)"
+docker compose down -v
 ```
 
-## Notes
+Use this only when you want to delete the PostgreSQL volume and reset the database.
 
-The main application runs locally and in Docker using Uvicorn.
+## 14. Useful Docker inspection commands
 
-The AWS Lambda wrapper is optional and only prepares the project for a future serverless deployment. No AWS deployment is required in this project.
+List volumes:
+
+```bash
+docker volume ls
+```
+
+Inspect the project network:
+
+```bash
+docker network ls
+```
+
+Inspect containers:
+
+```bash
+docker compose ps
+```
+
+## 15. Common issues
+
+### API cannot connect to database
+
+Inside Docker Compose, the API must use:
+
+```
+DATABASE_HOST=db
+DATABASE_PORT=5432
+```
+
+For local pytest from the host machine, use the host-exposed database port configured in your environment.
+
+### PostgreSQL password authentication failed
+
+If the database password was changed after the PostgreSQL volume was created, reset the volume:
+
+```bash
+docker compose down -v
+```
+
+This removes the persistent volume and allows PostgreSQL to reinitialize with the new credentials from `.env`.
+
+### Test collection errors
+
+If pytest fails to collect tests due to database connection errors, ensure:
+
+1. Docker Compose services are running: `docker compose up -d`
+2. Tests are mounted in the container (check `docker-compose.yml` volumes)
+3. Dependencies are installed: `docker compose exec api pip install -q pytest httpx`
+
+### Container exits unexpectedly
+
+Check logs:
+
+```bash
+docker compose logs db
+docker compose logs api
+```
+
+Common causes:
+
+- Database port 5432 already in use
+- Environment variables not loaded correctly
+- Dockerfile syntax errors
+
+---
+
+## Project 08 Workflow Summary
+
+1. **Development:** Edit code locally, containers auto-reload with volume mounts
+2. **Testing:** Run `docker compose exec api python -m pytest -v`
+3. **Manual Testing:** Use Swagger UI at `http://localhost:8000/docs`
+4. **Database Inspection:** Access PostgreSQL with `docker compose exec db psql`
+5. **Data Persistence:** Volumes survive `docker compose down` (use `-v` to delete)
+6. **Cleanup:** `docker compose down -v` removes everything (containers, volumes, networks)
+
+---
+
+## Next: DEVOPS-36
+
+The next phase will add SQLAlchemy models and database schema initialization to replace in-memory storage with persistent PostgreSQL data.
